@@ -50,7 +50,7 @@ class Ticket(models.Model):
         related_name="tickets"
     )
 
-    qt_token = models.UUIDField(
+    qr_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True
     )
@@ -63,5 +63,5 @@ class Ticket(models.Model):
 
     purchased_at = models.DateTimeField(auto_now_add=True)
 
-class Meta:
-    unique_together = ["user", "event"]
+    class Meta:
+        unique_together = ["user", "event"]
