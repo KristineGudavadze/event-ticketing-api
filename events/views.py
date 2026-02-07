@@ -35,6 +35,38 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
 class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all()
+    queryset = Ticket.objects.all().order_by('-id')
     serializer_class = TicketSerializer
     permission_classes = [IsAdminUser]
+
+    @action(detail=False, methods=['post'])
+    def validate(self, request):
+        qr_token = request.data.get("qr_token")
+
+        if not qr_token:
+            return Response(
+                {"detail': 'qr token is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            ticket = Ticket.objects.get(qr_token=qr_token)
+        except Ticket.DoesNotExist:
+            return Response(
+                {"detail": "Invalid ticket"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if ticket.status == "USED":
+            return Response(
+                {"detail": "ticket already used"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ticket.status = "USED"
+        ticket.save(update_fields=["status"])
+
+        return Response(
+            {"detail': 'Ticket validated successfully"},
+            status=status.HTTP_200_OK
+        )
